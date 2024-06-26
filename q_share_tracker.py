@@ -28,7 +28,7 @@ def dprint(message):
 
 def oprint(fp, message):
     if fp:
-        fp.write(message)
+        fp.write(message + '\n')
     else:
         print(message)
     return
@@ -160,7 +160,7 @@ if __name__ == "__main__":
             pass
     else:
         share_list = get_list_from_file(infile)
-    print(share_list)
+    dprint(share_list)
     if not user and not token:
         if not token_file:
             token_file = default_token_file
@@ -178,10 +178,13 @@ if __name__ == "__main__":
         if os.path.isfile(outfile):
             with open(outfile, 'r') as ifp:
                 for line in ifp:
-                    lp = line.split('/')
+                    line = line.rstrip('\n')
+                    lp = line.split(',')
                     if lp[0] == "**dates**":
                         lp_count = len(lp)
                         lp.append(now)
+                        ofp.write(','.join(lp) + '\n')
+                        continue
                     else:
                         path_size = get_path_size(lp[0])
                     if lp[0] in share_data.keys():
@@ -189,7 +192,8 @@ if __name__ == "__main__":
                         del share_data[lp[0]]
                     else:
                         lp.append('')
-                    ofp.write(lp)
+                    print("LP: " + str(lp))
+                    ofp.write(','.join(lp) + '\n')
             ifp.close()
     if not lp_count:
         oprint(ofp, '**dates**,' + now)
@@ -203,6 +207,8 @@ if __name__ == "__main__":
         oprint(ofp, ','.join(lp))
     if outfile:
         ofp.close()
+        os.replace(outfile + '.new', outfile)
+
 
 
 

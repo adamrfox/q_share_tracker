@@ -26,6 +26,12 @@ def dprint(message):
         dfh.write(message + "\n")
         dfh.close()
 
+def oprint(fp, message):
+    if fp:
+        fp.write(message)
+    else:
+        print(message)
+    return
 def api_login(qumulo, user, password, token):
     headers = {'Content-Type': 'application/json'}
     if not token:
@@ -96,6 +102,10 @@ def get_list_from_file(infile):
     fp.close()
     return(shares)
 
+def get_path_size(path):
+    path_data = qumulo_get(qumulo, '/v1/files/' + str(share_data[path]['id']) + '/recursive-aggregates/')
+    return (path_data[0]['total_capacity'])
+
 def get_share_data(qumulo, auth, sharename):
     if sharename.startswith('/'):
         sh_data = qumulo_get(qumulo, '/v2/nfs/exports/' + urllib.parse.quote(sharename, safe=''))
@@ -118,10 +128,11 @@ if __name__ == "__main__":
     password = ""
     timeout = 30
     infile = ""
-    outfile = "shares.csv"
+    outfile = ""
     share_list = []
     share_data = {}
-
+    lp_count = 0
+    ofp = ""
 
     optlist, args = getopt.getopt(sys.argv[1:], 'hDt:c:f:i:o:', ['help', 'DEBUG', 'token=', 'creds=', 'token-file=',
                                                                '--input-file=', 'output-file='])
@@ -161,4 +172,40 @@ if __name__ == "__main__":
         share_data[sh] = get_share_data(qumulo, auth, sh)
         if share_data[sh] == {}:
             del(share_data[sh])
-    pp.pprint(share_data)
+    now = datetime.strftime(datetime.now(), '%Y-%m-%d')
+    if outfile:
+        ofp = open(outfile + '.new', 'w')
+        if os.path.isfile(outfile):
+            with open(outfile, 'r') as ifp:
+                for line in ifp:
+                    lp = line.split('/')
+                    if lp[0] == "**dates**":
+                        lp_count = len(lp)
+                        lp.append(now)
+                    else:
+                        path_size = get_path_size(lp[0])
+                    if lp[0] in share_data.keys():
+                        lp.append(path_size)
+                        del share_data[lp[0]]
+                    else:
+                        lp.append('')
+                    ofp.write(lp)
+            ifp.close()
+    if not lp_count:
+        oprint(ofp, '**dates**,' + now)
+    for sh in share_data:
+        lp = [sh]
+        lpc = 0
+        while lpc < lp_count:
+            lp.append(',')
+        path_size = get_path_size(sh)
+        lp.append(path_size)
+        oprint(ofp, ','.join(lp))
+    if outfile:
+        ofp.close()
+
+
+
+
+
+

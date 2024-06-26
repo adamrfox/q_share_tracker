@@ -86,26 +86,26 @@ def get_token_from_file(file):
     return(t_data['bearer_token'])
 
 def get_list_from_file(infile):
-    shares = {}
+    shares = []
     with open(infile, 'r') as fp:
         for line in fp:
             line = line.rstrip()
             if line == "" or line.startswith('#'):
                 continue
-            shares[line] = ""
+            shares.append(line)
     fp.close()
     return(shares)
 
 def get_share_data(qumulo, auth, sharename):
     if sharename.startswith('/'):
-        name = sharename
+        sh_data = qumulo_get(qumulo, '/v2/nfs/exports/' + urllib.parse.quote(sharename, safe=''))
     else:
         sh_data = qumulo_get(qumulo, '/v2/smb/shares/' + sharename)
-        try:
-            name = sh_data['fs_path']
-        except TypeError:
-            sys.stderr.write("Error looling up share " + sharename + ": Skipping...\n")
-            return({})
+    try:
+        name = sh_data['fs_path']
+    except TypeError:
+        sys.stderr.write("Error looking up share " + sharename + ": Skipping...\n")
+        return({})
     path_id = qumulo_get(qumulo, '/v1/files/' + urllib.parse.quote(name, safe='') + '/info/attributes')
     return( {'path': name, 'id': path_id['id']} )
 
@@ -149,6 +149,7 @@ if __name__ == "__main__":
             pass
     else:
         share_list = get_list_from_file(infile)
+    print(share_list)
     if not user and not token:
         if not token_file:
             token_file = default_token_file
@@ -160,3 +161,4 @@ if __name__ == "__main__":
         share_data[sh] = get_share_data(qumulo, auth, sh)
         if share_data[sh] == {}:
             del(share_data[sh])
+    pp.pprint(share_data)

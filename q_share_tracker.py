@@ -119,6 +119,23 @@ def get_share_data(qumulo, auth, sharename):
     path_id = qumulo_get(qumulo, '/v1/files/' + urllib.parse.quote(name, safe='') + '/info/attributes')
     return( {'path': name, 'id': path_id['id']} )
 
+def get_all_shares():
+    share_list= []
+    paths = []
+    nfs_exports = qumulo_get(qumulo, '/v2/nfs/exports/')
+    for ex in nfs_exports:
+        if not DUPES and ex['fs_path'] in paths:
+            continue
+        share_list.append(ex['export_path'])
+        paths.append(ex['fs_path'])
+    smb_shares = qumulo_get(qumulo, '/v2/smb/shares/')
+    for ex in smb_shares:
+        if not DUPES and ex['fs_path'] in paths:
+            continue
+        share_list.append(ex['share_name'])
+        paths.append(ex['fs_path'])
+    return(share_list)
+
 if __name__ == "__main__":
     DEBUG = False
     default_token_file = ".qfsd_cred"
@@ -133,9 +150,11 @@ if __name__ == "__main__":
     share_data = {}
     lp_count = 0
     ofp = ""
+    ALL = False
+    DUPES = False
 
-    optlist, args = getopt.getopt(sys.argv[1:], 'hDt:c:f:i:o:', ['help', 'DEBUG', 'token=', 'creds=', 'token-file=',
-                                                               '--input-file=', 'output-file='])
+    optlist, args = getopt.getopt(sys.argv[1:], 'hDt:c:f:i:o:ad', ['help', 'DEBUG', 'token=', 'creds=', 'token-file=',
+                                                               '--input-file=', 'output-file=', 'all', 'dupes'])
     for opt, a in optlist:
         if opt in ['-h', '--help']:
             usage()
@@ -151,8 +170,22 @@ if __name__ == "__main__":
             infile = a
         if opt in ('-o', '--output-file'):
             outfile = a
+        if opt in ('-a' , '--all'):
+            ALL = True
+        if opt in ('-d', '--dupes'):
+            DUPES = True
+
     qumulo = args.pop(0)
-    if not infile:
+    if not user and not token:
+        if not token_file:
+            token_file = default_token_file
+        if os.path.isfile(token_file):
+            token = get_token_from_file(token_file)
+    auth = api_login(qumulo, user, password, token)
+    dprint(str(auth))
+    if ALL:
+        share_list = get_all_shares()
+    elif not infile:
         try:
             args_s = ''.join(args)
             share_list = args_s.split(',')
@@ -161,13 +194,6 @@ if __name__ == "__main__":
     else:
         share_list = get_list_from_file(infile)
     dprint(share_list)
-    if not user and not token:
-        if not token_file:
-            token_file = default_token_file
-        if os.path.isfile(token_file):
-            token = get_token_from_file(token_file)
-    auth = api_login(qumulo, user, password, token)
-    dprint(str(auth))
     for sh in share_list:
         share_data[sh] = get_share_data(qumulo, auth, sh)
         if share_data[sh] == {}:

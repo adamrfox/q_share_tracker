@@ -192,16 +192,17 @@ if __name__ == "__main__":
                         del share_data[lp[0]]
                     else:
                         lp.append('')
-                    print("LP: " + str(lp))
+#                    print("LP: " + str(lp))
                     ofp.write(','.join(lp) + '\n')
             ifp.close()
     if not lp_count:
         oprint(ofp, '**dates**,' + now)
     for sh in share_data:
         lp = [sh]
-        lpc = 0
+        lpc = 1
         while lpc < lp_count:
-            lp.append(',')
+            lp.append('')
+            lpc = lpc + 1
         path_size = get_path_size(sh)
         lp.append(path_size)
         oprint(ofp, ','.join(lp))

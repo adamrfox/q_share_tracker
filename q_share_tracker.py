@@ -102,9 +102,22 @@ def get_list_from_file(infile):
     fp.close()
     return(shares)
 
-def get_path_size(path):
+def get_path_size(path, unit):
+    psize = 0
     path_data = qumulo_get(qumulo, '/v1/files/' + str(share_data[path]['id']) + '/recursive-aggregates/')
-    return (path_data[0]['total_capacity'])
+    if unit == 'k':
+        psize = int(path_data[0]['total_capacity'])/1024
+    elif unit == 'm':
+        psize = int(path_data[0]['total_capacity'])/1024/1024
+    elif unit == 'g':
+        psize = int(path_data[0]['total_capacity'])/1024/1024/1024
+    elif unit == 't':
+        psize = int(path_data[0]['total_capacity'])/1024/1024/1024/1024
+    elif unit == 'p':
+        psize = int(path_data[0]['total_capacity'])/1024/1024/1024/1024/1024
+    else:
+        psize = int(path_data[0]['total_capacity'])
+    return (int(psize))
 
 def get_share_data(qumulo, auth, sharename):
     if sharename.startswith('/'):
@@ -149,12 +162,14 @@ if __name__ == "__main__":
     share_list = []
     share_data = {}
     lp_count = 0
+    unit = ''
     ofp = ""
+    unit = ""
     ALL = False
     DUPES = False
 
-    optlist, args = getopt.getopt(sys.argv[1:], 'hDt:c:f:i:o:ad', ['help', 'DEBUG', 'token=', 'creds=', 'token-file=',
-                                                               '--input-file=', 'output-file=', 'all', 'dupes'])
+    optlist, args = getopt.getopt(sys.argv[1:], 'hDt:c:f:i:o:adu:', ['help', 'DEBUG', 'token=', 'creds=', 'token-file=',
+                                                               '--input-file=', 'output-file=', 'all', 'dupes','unit'])
     for opt, a in optlist:
         if opt in ['-h', '--help']:
             usage()
@@ -174,6 +189,8 @@ if __name__ == "__main__":
             ALL = True
         if opt in ('-d', '--dupes'):
             DUPES = True
+        if opt in ('-u', '--unit'):
+            unit = a[:1].lower()
 
     qumulo = args.pop(0)
     if not user and not token:
@@ -212,9 +229,9 @@ if __name__ == "__main__":
                         ofp.write(','.join(lp) + '\n')
                         continue
                     else:
-                        path_size = get_path_size(lp[0])
+                        path_size = get_path_size(lp[0], unit)
                     if lp[0] in share_data.keys():
-                        lp.append(path_size)
+                        lp.append(str(path_size))
                         del share_data[lp[0]]
                     else:
                         lp.append('')
@@ -229,8 +246,8 @@ if __name__ == "__main__":
         while lpc < lp_count:
             lp.append('')
             lpc = lpc + 1
-        path_size = get_path_size(sh)
-        lp.append(path_size)
+        path_size = get_path_size(sh, unit)
+        lp.append(str(path_size))
         oprint(ofp, ','.join(lp))
     if outfile:
         ofp.close()

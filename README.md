@@ -25,7 +25,7 @@ The API calls used by this script need to be authenticated.  The script provides
 1. Specify the user and password on the command line via -c.  The format is user:password.
 2. Specify an access token on the command line via -t.
 3. Specify a file that congtains the token.  The format expected is the output from the Qumulo CLI command qq auth_create_access token.  If a file called .qfsd_creds exists (the default file from that command), the script wil use that.  This is useful for unattended runs (e.g. via cron)
-4. If no other options are used, the script will prompt the user for a user and password.  The password is not echoed to the screen.
+4. If no other options are used, the script will prompt for a user and password.  The password is not echoed to the screen.
 
 Selecting Shares to be Tracked:
 The script provides multiple ways to specify which shares should be tracked.

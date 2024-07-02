@@ -35,7 +35,11 @@ The script provides multiple ways to specify which shares should be tracked.
 3. If all shares are to be tracked, use the -a flag.  This will automatically add new shares on subsequent runs.
 4. If a CSV output file has already been generated after a previous run and not other method is specified, the script will read the output file and use and update those shares. Note:  This will not automtically add subsequent shares added since the last run.  See -a for that option.
 
-Miminial Priveldges:
+Units:
+
+By default, sizes are shown in bytes.  This can be modifed via the -u flag.  The arguemnts for this argument are ['kb', 'mb', 'gb', 'tb', 'pb'].  Note: only the first letter is read so the 'b' is optional.  The argument is not case-senitive.
+
+Miminial Privildges:
 The script can, of course, be run as an admin user but that's not required.  Another user with limited RBAC user with the following privs can be used:
 <PRE>
 FS_ATTRIBUTES_READ

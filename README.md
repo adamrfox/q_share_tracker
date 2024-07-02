@@ -37,8 +37,8 @@ The script provides multiple ways to specify which shares should be tracked.
 
 Miminial Priveldges:
 The script can, of course, be run as an admin user but that's not required.  Another user with limited RBAC user with the following privs can be used:
-
+<PRE>
 FS_ATTRIBUTES_READ
 NFS_EXPORT_READ
 SMB_SHARE_READ
-
+</PRE>

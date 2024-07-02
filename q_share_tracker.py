@@ -143,6 +143,9 @@ def get_share_data(qumulo, auth, sharename):
         sys.stderr.write("Error looking up share " + sharename + ": Skipping...\n")
         return({})
     path_id = qumulo_get(qumulo, '/v1/files/' + urllib.parse.quote(name, safe='') + '/info/attributes')
+    if path_id == "404":
+        sys.stderr.write("Path for " + sharename + " not found...skipping\n")
+        return({})
     return( {'path': name, 'id': path_id['id']} )
 
 def get_all_shares():
@@ -165,6 +168,7 @@ def get_all_shares():
 if __name__ == "__main__":
     DEBUG = False
     default_token_file = ".qfsd_cred"
+    timeout = 30
     token_file = ""
     token = ""
     user = ""

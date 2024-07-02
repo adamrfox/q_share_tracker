@@ -1,0 +1,8 @@
+# demo file
+# NFS Exports
+/foo
+/bar
+# SMB Shares
+baz
+quux
+

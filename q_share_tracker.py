@@ -17,7 +17,19 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 def usage():
-    print("Usage goes here!")
+    sys.stderr.write("Usage: q_share_tracker.py [-hDad] [-c creds] [-t token] [-f token_file] [-i input_file] [-o output_file] [-u unit] qumulo [share,...share]\n")
+    sys.stderr.write("-h | --help: Help. Prints usage\n")
+    sys.stderr.write("-D | --DEBUG: Generate debug data\n")
+    sys.stderr.write("-a | -all: Report on all shares\n")
+    sys.stderr.write("-d | --dupes: Show shares with duplicate paths\n")
+    sys.stderr.write("-c | --creds: Put credentials on the CLI [user:password]\n")
+    sys.stderr.write("-t | --token: Put access token on CLI\n")
+    sys.stderr.write("-f | --token-file: Read token form a file [default: .qfsd_cred]\n")
+    sys.stderr.write("-i | --input-file: Read list of shares from a file\n")
+    sys.stderr.write('-o | --output-file: Write output to a csv file [default: outputs to screen\n')
+    sys.stderr.write("-u | --unit: Define the unit of size [kb, mb, gb, tb, pb] ('b optional') [default: bytes]\n")
+    sys.stderr.write("qumulo: Name or IP of a Qumulo node/cluster\n")
+    sys.stderr.write("share,....,share : Specify comma-separted list of shares on the CLI\n")
     exit(0)
 
 def dprint(message):
@@ -96,9 +108,10 @@ def get_list_from_file(infile):
     with open(infile, 'r') as fp:
         for line in fp:
             line = line.rstrip()
-            if line == "" or line.startswith('#'):
+            if line == "" or line.startswith('#') or line.startswith('**dates'):
                 continue
-            shares.append(line)
+            lf = line.split(',')
+            shares.append(lf[0])
     fp.close()
     return(shares)
 
@@ -169,7 +182,7 @@ if __name__ == "__main__":
     DUPES = False
 
     optlist, args = getopt.getopt(sys.argv[1:], 'hDt:c:f:i:o:adu:', ['help', 'DEBUG', 'token=', 'creds=', 'token-file=',
-                                                               '--input-file=', 'output-file=', 'all', 'dupes','unit'])
+                                                               'input-file=', 'output-file=', 'all', 'dupes','unit='])
     for opt, a in optlist:
         if opt in ['-h', '--help']:
             usage()
@@ -208,9 +221,11 @@ if __name__ == "__main__":
             share_list = args_s.split(',')
         except:
             pass
+        if outfile and os.path.isfile(outfile):
+            share_list = get_list_from_file(outfile)
     else:
         share_list = get_list_from_file(infile)
-    dprint(share_list)
+    dprint(str(share_list))
     for sh in share_list:
         share_data[sh] = get_share_data(qumulo, auth, sh)
         if share_data[sh] == {}:

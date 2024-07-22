@@ -119,15 +119,15 @@ def get_path_size(path, unit):
     psize = 0
     path_data = qumulo_get(qumulo, '/v1/files/' + str(share_data[path]['id']) + '/recursive-aggregates/')
     if unit == 'k':
-        psize = int(path_data[0]['total_capacity'])/1024
+        psize = int(path_data[0]['total_capacity'])/1000
     elif unit == 'm':
-        psize = int(path_data[0]['total_capacity'])/1024/1024
+        psize = int(path_data[0]['total_capacity'])/1000/1000
     elif unit == 'g':
-        psize = int(path_data[0]['total_capacity'])/1024/1024/1024
+        psize = int(path_data[0]['total_capacity'])/1000/1000/1000
     elif unit == 't':
-        psize = int(path_data[0]['total_capacity'])/1024/1024/1024/1024
+        psize = int(path_data[0]['total_capacity'])/1000/1000/1000/1000
     elif unit == 'p':
-        psize = int(path_data[0]['total_capacity'])/1024/1024/1024/1024/1024
+        psize = int(path_data[0]['total_capacity'])/1000/1000/1000/1000/1000
     else:
         psize = int(path_data[0]['total_capacity'])
     return (int(psize))

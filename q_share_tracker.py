@@ -17,14 +17,15 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 def usage():
-    sys.stderr.write("Usage: q_share_tracker.py [-hDad] [-c creds] [-t token] [-f token_file] [-i input_file] [-o output_file] [-u unit] qumulo [share,...share]\n")
+    sys.stderr.write("Usage: q_share_tracker.py [-hDadp] [-c creds] [-t token] [-f token_file] [-i input_file] [-o output_file] [-u unit] qumulo [share,...share]\n")
     sys.stderr.write("-h | --help: Help. Prints usage\n")
     sys.stderr.write("-D | --DEBUG: Generate debug data\n")
     sys.stderr.write("-a | -all: Report on all shares\n")
     sys.stderr.write("-d | --dupes: Show shares with duplicate paths\n")
+    sys.stderr.write("-p | --paths: Use raw paths instead of shares")
     sys.stderr.write("-c | --creds: Put credentials on the CLI [user:password]\n")
     sys.stderr.write("-t | --token: Put access token on CLI\n")
-    sys.stderr.write("-f | --token-file: Read token form a file [default: .qfsd_cred]\n")
+    sys.stderr.write("-f | --token-file: Read token form a file [default: dd.qfsd_cred]\n")
     sys.stderr.write("-i | --input-file: Read list of shares from a file\n")
     sys.stderr.write('-o | --output-file: Write output to a csv file [default: outputs to screen\n')
     sys.stderr.write("-u | --unit: Define the unit of size [kb, mb, gb, tb, pb] ('b optional') [default: bytes]\n")
@@ -133,10 +134,14 @@ def get_path_size(path, unit):
     return (int(psize))
 
 def get_share_data(qumulo, auth, sharename):
-    if sharename.startswith('/'):
-        sh_data = qumulo_get(qumulo, '/v2/nfs/exports/' + urllib.parse.quote(sharename, safe=''))
+    sh_data = {}
+    if not RAW_PATHS:
+        if sharename.startswith('/'):
+            sh_data = qumulo_get(qumulo, '/v2/nfs/exports/' + urllib.parse.quote(sharename, safe=''))
+        else:
+            sh_data = qumulo_get(qumulo, '/v2/smb/shares/' + sharename)
     else:
-        sh_data = qumulo_get(qumulo, '/v2/smb/shares/' + sharename)
+        sh_data['fs_path'] = sharename
     try:
         name = sh_data['fs_path']
     except TypeError:
@@ -184,9 +189,10 @@ if __name__ == "__main__":
     unit = ""
     ALL = False
     DUPES = False
+    RAW_PATHS = False
 
-    optlist, args = getopt.getopt(sys.argv[1:], 'hDt:c:f:i:o:adu:', ['help', 'DEBUG', 'token=', 'creds=', 'token-file=',
-                                                               'input-file=', 'output-file=', 'all', 'dupes','unit='])
+    optlist, args = getopt.getopt(sys.argv[1:], 'hDpt:c:f:i:o:adu:', ['help', 'DEBUG', 'token=', 'creds=', 'token-file=',
+                                                               'input-file=', 'output-file=', 'all', 'dupes','unit=', '--paths'])
     for opt, a in optlist:
         if opt in ['-h', '--help']:
             usage()
@@ -208,6 +214,8 @@ if __name__ == "__main__":
             DUPES = True
         if opt in ('-u', '--unit'):
             unit = a[:1].lower()
+        if opt in ('-p', '--paths'):
+            RAW_PATHS = True
 
     qumulo = args.pop(0)
     if not user and not token:

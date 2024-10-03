@@ -4,11 +4,12 @@ A project to track Qumulo shares over time.
 This project allows the size of data on a Qumulo cluster to be tracked at the share level over time.  It generated a .csv which can be imported into another application to create a report in any format desired.
 
 <PRE>
-Usage: q_share_tracker.py [-hDad] [-c creds] [-t token] [-f token_file] [-i input_file] [-o output_file] [-u unit] qumulo [share,...share]
+Usage: q_share_tracker.py [-hDadp] [-c creds] [-t token] [-f token_file] [-i input_file] [-o output_file] [-u unit] qumulo [share,...share]
 -h | --help: Help. Prints usage
 -D | --DEBUG: Generate debug data
 -a | -all: Report on all shares
 -d | --dupes: Show shares with duplicate paths
+-p | --paths: use raw paths instead of shares
 -c | --creds: Put credentials on the CLI [user:password]
 -t | --token: Put access token on CLI
 -f | --token-file: Read token form a file [default: .qfsd_cred]
